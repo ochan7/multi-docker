@@ -1,0 +1,21 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t oliechan/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run oliechan/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t oliechan/multi-client ./client
+  - docker build -t oliechan/multi-nginx ./nginx
+  - docker build -t oliechan/multi-server ./server
+  - docker build -t oliechan/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push oliechan/multi-client
+  - docker push oliechan/multi-nginx
+  - docker push oliechan/multi-server
+  - docker push oliechan/multi-worker
